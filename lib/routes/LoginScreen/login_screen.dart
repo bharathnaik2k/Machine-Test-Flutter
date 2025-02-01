@@ -1,61 +1,10 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:machine_test/routes/RegistrationScreen/registration_screen.dart';
-import 'package:machine_test/routes/VerificationScreen/verification_screen.dart';
-import 'package:machine_test/utils/api_adress/api_adress.dart';
-import 'package:machine_test/utils/snackbar/custom_snack.dart';
+import 'package:machine_test/utils/state_controller/login_controller/login_controller.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  bool phone = true;
-  TextEditingController inputController = TextEditingController();
-  bool progressIndi = false;
-
-  Future<void> postSendcode() async {
-    String url = "$baseURL$otpAndResendEndPoint";
-    Uri uri = Uri.parse(url);
-    Map<String, dynamic> body = {
-      "mobileNumber": inputController.text,
-      "deviceId": "62b341aeb0ab5ebe28a758a3",
-    };
-    var response = await http.post(uri, body: body);
-    setState(() {
-      progressIndi = false;
-    });
-    log(response.statusCode.toString());
-    if (response.statusCode == 200) {
-      showInSnackBar("OTP Sent successful", context);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) {
-            return VerificationScreen(
-              text: inputController.text,
-            );
-          },
-        ),
-      );
-      log(json.decode(response.body).toString());
-    } else {
-      showInSnackBar("User does't exits please Register", context);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) {
-            return const RegistrationScreen();
-          },
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,68 +41,73 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               Center(
                 child: Container(
-                  width: 200,
+                  width: MediaQuery.of(context).size.width * 0.6,
                   height: 45,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(100),
                     color: const Color.fromARGB(255, 205, 205, 205),
                   ),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          phone = true;
-                          setState(() {});
-                        },
-                        child: Container(
-                          width: 100,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: phone == true
-                                ? const Color.fromARGB(255, 255, 17, 0)
-                                : Colors.transparent,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Phone",
-                              style: TextStyle(
-                                color:
-                                    phone == true ? Colors.white : Colors.black,
-                                fontWeight: FontWeight.bold,
+                  child: Consumer<LoginController>(
+                    builder: (context, value, child) {
+                      return Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              value.phone = true;
+                              value.notifyListeners();
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.3,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                color: value.phone == true
+                                    ? const Color.fromARGB(255, 255, 17, 0)
+                                    : Colors.transparent,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Phone",
+                                  style: TextStyle(
+                                    color: value.phone == true
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          phone = false;
-                          setState(() {});
-                        },
-                        child: Container(
-                          width: 100,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: phone == false
-                                ? const Color.fromARGB(255, 255, 17, 0)
-                                : Colors.transparent,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Email",
-                              style: TextStyle(
-                                color: phone == false
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () {
+                              value.phone = false;
+                              value.notifyListeners();
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.3,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                color: value.phone == false
+                                    ? const Color.fromARGB(255, 255, 17, 0)
+                                    : Colors.transparent,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Email",
+                                  style: TextStyle(
+                                    color: value.phone == false
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -168,61 +122,64 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 15),
               const Text("Please provide your phone number"),
               const SizedBox(height: 28),
-              TextField(
-                onChanged: (value) {
-                  setState(() {});
-                },
-                keyboardType: phone == true
-                    ? TextInputType.number
-                    : TextInputType.emailAddress,
-                maxLength: phone == true ? 10 : 100,
-                controller: inputController,
-                decoration: InputDecoration(
-                  counterText: "",
-                  hintText: phone == true ? "Phone" : "Email",
-                ),
-              ),
+              Consumer<LoginController>(builder: (context, ref, child) {
+                return TextField(
+                  onChanged: (value) {
+                    ref.notifyListeners();
+                  },
+                  keyboardType: ref.phone == true
+                      ? TextInputType.number
+                      : TextInputType.emailAddress,
+                  maxLength: ref.phone == true ? 10 : 100,
+                  controller: ref.inputController,
+                  decoration: InputDecoration(
+                    counterText: "",
+                    hintText: ref.phone == true ? "Phone" : "Email",
+                  ),
+                );
+              }),
               const SizedBox(height: 20),
               Center(
-                child: TextButton(
-                  style: ButtonStyle(
-                    shape: MaterialStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                child:
+                    Consumer<LoginController>(builder: (context, ref, child) {
+                  return TextButton(
+                    style: ButtonStyle(
+                      shape: MaterialStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      backgroundColor: MaterialStatePropertyAll(
+                        ref.inputController.length == 0
+                            ? const Color.fromARGB(255, 255, 145, 145)
+                            : Colors.red,
+                      ),
+                      minimumSize: MaterialStatePropertyAll(
+                        Size(MediaQuery.of(context).size.width * 0.6, 52.0),
                       ),
                     ),
-                    backgroundColor: MaterialStatePropertyAll(
-                      inputController.length == 0
-                          ? const Color.fromARGB(255, 255, 145, 145)
-                          : Colors.red,
-                    ),
-                    minimumSize: const MaterialStatePropertyAll(
-                      Size(180.0, 52.0),
-                    ),
-                  ),
-                  onPressed: () {
-                    if (inputController.length >= 10) {
-                      if (progressIndi == false) {
-                        postSendcode();
-                        progressIndi = true;
-                        setState(() {});
+                    onPressed: () {
+                      if (ref.inputController.length >= 10) {
+                        if (ref.progressIndi == false) {
+                          ref.postSendcode(context);
+                          ref.progressIndi = true;
+                          ref.notifyListeners();
+                        }
                       }
-                    }
-                  },
-                  child: progressIndi == true
-                      ? const CircularProgressIndicator(
-                          strokeAlign: 0,
-                          // strokeWidth:
-                          // ,
-                        )
-                      : const Text(
-                          "Send Code",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                    },
+                    child: ref.progressIndi == true
+                        ? const CircularProgressIndicator(
+                            strokeAlign: 0,
+                          )
+                        : const Text(
+                            "Send Code",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                ),
+                  );
+                }),
               ),
               const SizedBox(height: 5),
             ],

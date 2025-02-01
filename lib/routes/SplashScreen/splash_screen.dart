@@ -4,19 +4,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:machine_test/components/divice_info.dart';
+import 'package:machine_test/routes/LoginScreen/login_screen.dart';
 import 'package:machine_test/utils/api_adress/api_adress.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  bool circularProgressIndicator = true;
-
-  Future<void> postDeviceInfo() async {
+  Future<void> postDeviceInfo(BuildContext context) async {
     try {
       String url = "$baseURL$deviceInfoEndPoint";
       Uri uri = Uri.parse(url);
@@ -26,28 +20,24 @@ class _SplashScreenState extends State<SplashScreen> {
         body: jsonEncode(body),
       );
       if (response.statusCode == 200) {
-        circularProgressIndicator = false;
-        log(circularProgressIndicator.toString());
-        naviFun();
-        setState(() {});
+        naviFun(context);
       }
     } catch (e) {
       log(e.toString());
     }
   }
 
-  void naviFun() {
-    Navigator.of(context).pushReplacementNamed("/LoginScreen");
-  }
-
-  @override
-  void initState() {
-    postDeviceInfo();
-    super.initState();
+  void naviFun(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    postDeviceInfo(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -65,14 +55,12 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 220,
             ),
           ),
-          circularProgressIndicator == true
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    strokeCap: StrokeCap.round,
-                    color: Colors.red,
-                  ),
-                )
-              : const SizedBox(),
+          const Center(
+            child: CircularProgressIndicator(
+              strokeCap: StrokeCap.round,
+              color: Colors.red,
+            ),
+          )
         ],
       ),
     );

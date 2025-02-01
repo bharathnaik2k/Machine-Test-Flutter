@@ -4,49 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:machine_test/routes/DashboradScreen/dashborad_screen.dart';
 import 'package:machine_test/routes/LoginScreen/login_screen.dart';
 import 'package:machine_test/utils/snackbar/custom_snack.dart';
+import 'package:machine_test/utils/state_controller/login_controller/login_controller.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String? text;
-  const VerificationScreen({super.key, required this.text});
+  const VerificationScreen({super.key, this.text});
 
   @override
   State<VerificationScreen> createState() => _VerificationScreenState();
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  TextEditingController pinController = TextEditingController();
-  int secondsRemaining = 120;
-  bool enableResend = false;
-  Timer? timer;
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
-
-  String formattedTime(int timeInSeconds) {
-    int sec = timeInSeconds % 60;
-    int min = timeInSeconds ~/ 60;
-    return "${min.toString().padLeft(2, '0')} : ${sec.toString().padLeft(2, '0')}";
-  }
-
   @override
   void initState() {
+    final verificationcontroller =
+        Provider.of<LoginController>(context, listen: false);
+    verificationcontroller.timerCall();
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (secondsRemaining > 0) {
-        setState(() {
-          secondsRemaining--;
-        });
-      } else {
-        setState(() {
-          enableResend = true;
-        });
-        timer?.cancel();
-      }
-    });
   }
 
   @override
@@ -67,6 +43,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
         border: Border.all(color: borderColor),
       ),
     );
+
+    final verificationcontroller =
+        Provider.of<LoginController>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -111,7 +90,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
             const SizedBox(height: 28),
             Pinput(
-              controller: pinController,
+              controller: verificationcontroller.pinController,
               defaultPinTheme: defaultPinTheme,
               separatorBuilder: (index) => const SizedBox(width: 8),
               hapticFeedbackType: HapticFeedbackType.lightImpact,
@@ -155,47 +134,52 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
             ),
             const SizedBox(height: 15),
-            Row(
-              children: [
-                Text(
-                  formattedTime(secondsRemaining),
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    if (enableResend == true) {
-                      setState(() {
-                        secondsRemaining = 120;
-                        enableResend = false;
-                        if (timer?.isActive ?? false) timer?.cancel();
-                        timer = Timer.periodic(const Duration(seconds: 1), (_) {
-                          if (secondsRemaining > 0) {
-                            setState(() {
-                              secondsRemaining--;
-                            });
+            Consumer<LoginController>(builder: (context, ref, child) {
+              return Row(
+                children: [
+                  Text(
+                    ref.formattedTime(ref.secondsRemaining),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      if (ref.enableResend == true) {
+                        ref.secondsRemaining = 10;
+                        ref.enableResend = false;
+                        ref.notifyListeners();
+                        if (ref.timer?.isActive ?? false) {
+                          ref.timer?.cancel();
+                          ref.notifyListeners();
+                        }
+                        ref.timer =
+                            Timer.periodic(const Duration(seconds: 1), (_) {
+                          if (ref.secondsRemaining > 0) {
+                            ref.secondsRemaining--;
+                            ref.notifyListeners();
                           } else {
-                            setState(() {
-                              enableResend = true;
-                            });
-                            timer?.cancel();
+                            ref.enableResend = true;
+                            ref.timer?.cancel();
+                            ref.notifyListeners();
                           }
                         });
                         showInSnackBar("OTP resend succesful", context);
-                      });
-                    }
-                  },
-                  child: Text(
-                    'Send Again',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: enableResend == true ? Colors.black : Colors.grey,
+                      }
+                    },
+                    child: Text(
+                      'Send Again',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: ref.enableResend == true
+                            ? Colors.black
+                            : Colors.grey,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
           ],
         ),
       ),
