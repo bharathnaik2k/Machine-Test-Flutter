@@ -1,12 +1,7 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:machine_test/routes/LoginScreen/login_screen.dart';
-import 'package:machine_test/routes/VerificationScreen/verification_screen.dart';
-import 'package:machine_test/utils/api_adress/api_adress.dart';
-import 'package:machine_test/utils/snackbar/custom_snack.dart';
+import 'package:machine_test/utils/state_controller/registration_controller/registration_controller.dart';
+import 'package:provider/provider.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -16,51 +11,10 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController referralController = TextEditingController();
-  bool _passwordVisible = false;
-  bool progressIndi = false;
-
-  Future<void> postRegister() async {
-    String url = "$baseURL$registrationEndPoint";
-    Uri uri = Uri.parse(url);
-    Map<String, dynamic> body = {
-      "email": emailController.text,
-      "password": passwordController.text,
-      "referralCode": referralController.text,
-      "userId": "62a833766ec5dafd6780fc85"
-    };
-    var response = await post(uri, body: body);
-    setState(() {
-      progressIndi = false;
-    });
-    showInSnackBar("OTP Sent successful", context);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) {
-          return VerificationScreen(text: emailController.text);
-        },
-      ),
-    );
-    log(response.statusCode.toString());
-    if (response.statusCode == 200) {
-      showInSnackBar("OTP Sent successful", context);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) {
-            return VerificationScreen(text: emailController.text);
-          },
-        ),
-      );
-      log(json.decode(response.body).toString());
-    } else {
-      log(json.decode(response.body).toString());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final RegistrationController registrationController =
+        Provider.of<RegistrationController>(context, listen: false);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -109,35 +63,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               const SizedBox(height: 28),
               TextField(
                 keyboardType: TextInputType.emailAddress,
-                controller: emailController,
+                controller: registrationController.emailController,
                 decoration: const InputDecoration(hintText: "Your Email"),
               ),
               const SizedBox(height: 5),
-              TextField(
-                keyboardType: TextInputType.emailAddress,
-                controller: passwordController,
-                obscureText: _passwordVisible,
-                decoration: InputDecoration(
-                  hintText: "Create Password",
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _passwordVisible
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Theme.of(context).primaryColorDark,
+              Consumer<RegistrationController>(builder: (context, ref, child) {
+                return TextField(
+                  keyboardType: TextInputType.emailAddress,
+                  controller: ref.passwordController,
+                  obscureText: ref.passwordVisible,
+                  decoration: InputDecoration(
+                    hintText: "Create Password",
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        ref.passwordVisible
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.green,
+                      ),
+                      onPressed: () {
+                        ref.passwordVisible = !ref.passwordVisible;
+                        ref.notifyListeners();
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _passwordVisible = !_passwordVisible;
-                      });
-                    },
                   ),
-                ),
-              ),
+                );
+              }),
               const SizedBox(height: 5),
               TextField(
                 keyboardType: TextInputType.emailAddress,
-                controller: referralController,
+                controller: registrationController.referralController,
                 decoration:
                     const InputDecoration(hintText: "Referral Code (Optional)"),
               ),
@@ -148,8 +103,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          progressIndi = true;
-          postRegister();
+          registrationController.progressIndicator = true;
+          registrationController.postRegister(context);
         },
         backgroundColor: const Color.fromARGB(255, 255, 17, 0),
         shape: RoundedRectangleBorder(

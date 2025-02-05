@@ -164,6 +164,13 @@ class LoginScreen extends StatelessWidget {
                           ref.postSendcode(context);
                           ref.progressIndi = true;
                           ref.notifyListeners();
+                          // Navigator.of(context).pushReplacement(
+                          //   MaterialPageRoute(
+                          //     builder: (context) {
+                          //       return const RegistrationScreen();
+                          //     },
+                          //   ),
+                          // );
                         }
                       }
                     },

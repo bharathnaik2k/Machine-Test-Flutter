@@ -12,7 +12,7 @@ class HomeWidget extends StatefulWidget {
   final List<dynamic> myBrowsingHistory;
   final List<dynamic> laptopBanner;
   final List<dynamic> featuredLaptop;
-  
+
   final List<dynamic> upcomingMobiles;
 
   const HomeWidget({
@@ -25,7 +25,6 @@ class HomeWidget extends StatefulWidget {
     required this.myBrowsingHistory,
     required this.laptopBanner,
     required this.featuredLaptop,
-    
     required this.upcomingMobiles,
   });
 
@@ -36,12 +35,13 @@ class HomeWidget extends StatefulWidget {
 class _HomeWidgetState extends State<HomeWidget> {
   @override
   Widget build(BuildContext context) {
+    
     return SingleChildScrollView(
       child: Column(
-        children: [
+        children: <Widget>[
           CarouselSlider.builder(
             itemCount: widget.bannerList.length,
-            itemBuilder: (context, index, realIndex) {
+            itemBuilder: (BuildContext context, int index, int realIndex) {
               return widget.bannerList.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : Padding(
@@ -75,14 +75,14 @@ class _HomeWidgetState extends State<HomeWidget> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
               gradient: const LinearGradient(
-                colors: [
+                colors: <Color>[
                   Color.fromARGB(255, 163, 130, 195),
                   Color.fromARGB(255, 110, 80, 180),
                 ],
               ),
             ),
             child: Column(
-              children: [
+              children: <Widget>[
                 const Text(
                   "KYC Pending",
                   style: TextStyle(
@@ -127,20 +127,21 @@ class _HomeWidgetState extends State<HomeWidget> {
             height: 110,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 ListView.builder(
                   shrinkWrap: true,
                   itemCount: widget.categoryList.length,
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
+                  itemBuilder: (BuildContext context, int index) {
                     return Padding(
                       padding: const EdgeInsets.all(14.0),
                       child: GestureDetector(
                         onTap: () {
                           if (index == 0) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => MoblieCategory(
+                            Navigator.of(context).push<dynamic>(
+                              MaterialPageRoute<dynamic>(
+                                builder: (BuildContext context) =>
+                                    MoblieCategory(
                                   upcomingMobiles: widget.upcomingMobiles,
                                   moblies1: widget.categoriesListing,
                                   moblies2: widget.myBrowsingHistory,
@@ -159,7 +160,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                           }
                         },
                         child: Column(
-                          children: [
+                          children: <Widget>[
                             Image.network(widget.categoryList[index]["icon"]),
                             const SizedBox(height: 5),
                             Text(

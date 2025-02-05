@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:machine_test/routes/DashboradScreen/dashborad_screen.dart';
 import 'package:machine_test/routes/LoginScreen/login_screen.dart';
 import 'package:machine_test/utils/snackbar/custom_snack.dart';
-import 'package:machine_test/utils/state_controller/login_controller/login_controller.dart';
+import 'package:machine_test/utils/state_controller/verification_controller/verification_controller.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String? text;
-  const VerificationScreen({super.key, this.text});
+  const VerificationScreen({
+    super.key,
+    this.text,
+  });
 
   @override
   State<VerificationScreen> createState() => _VerificationScreenState();
@@ -19,17 +22,17 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   @override
   void initState() {
-    final verificationcontroller =
-        Provider.of<LoginController>(context, listen: false);
+    final VerificationController verificationcontroller =
+        Provider.of<VerificationController>(context, listen: false);
     verificationcontroller.timerCall();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    const focusedBorderColor = Color.fromRGBO(23, 171, 144, 1);
-    const fillColor = Color.fromRGBO(243, 246, 249, 0);
-    const borderColor = Color.fromRGBO(23, 171, 144, 0.4);
+    const Color focusedBorderColor = Color.fromRGBO(23, 171, 144, 1);
+    const Color fillColor = Color.fromRGBO(243, 246, 249, 0);
+    const Color borderColor = Color.fromRGBO(23, 171, 144, 0.4);
 
     final defaultPinTheme = PinTheme(
       width: 56,
@@ -44,8 +47,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       ),
     );
 
-    final verificationcontroller =
-        Provider.of<LoginController>(context, listen: false);
+    final VerificationController verificationcontroller =
+        Provider.of<VerificationController>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -134,7 +137,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
             ),
             const SizedBox(height: 15),
-            Consumer<LoginController>(builder: (context, ref, child) {
+            Consumer<VerificationController>(builder: (context, ref, child) {
               return Row(
                 children: [
                   Text(
